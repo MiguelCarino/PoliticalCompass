@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Political Compass</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:     #070904;
+      --bezel:  #14160f;
+      --lcd:    #0b0d07;
+      --dim:    #243020;
+      --mid:    #3e5038;
+      --border: #2a3f5c;
+      --gold:   #b89018;
+      --active: #8cb87a;
+      --bright: #c4daa4;
+      --mind:    #5aabda;
+      --suggest: #d4a030;
+      --enforce: #d45030;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: 'VT323', 'Courier New', monospace;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Casio octagonal bezel ── */
+    .watch {
+      background: var(--bezel);
+      clip-path: polygon(3.5% 0%, 96.5% 0%, 100% 3.5%, 100% 96.5%, 96.5% 100%, 3.5% 100%, 0% 96.5%, 0% 3.5%);
+      padding: 9px 11px;
+      width:  min(98vw, 98vh * 1.88);
+      height: min(98vh, 98vw / 1.88);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    /* ── LCD screen ── */
+    .screen {
+      flex: 1;
+      background: var(--lcd);
+      border: 2px solid var(--border);
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-height: 0;
+    }
+
+    /* Header */
+    .hdr {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      border-bottom: 1px solid var(--dim);
+      padding-bottom: 4px;
+      flex-shrink: 0;
+      gap: 8px;
+    }
+    .hdr-title {
+      font-size: clamp(1.1rem, 2.4vw, 1.5rem);
+      color: var(--active);
+      letter-spacing: 0.18em;
+      flex-shrink: 0;
+    }
+    .hdr-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .hdr-tag {
+      font-size: clamp(0.85rem, 1.5vw, 1.05rem);
+      color: var(--gold);
+      letter-spacing: 0.22em;
+    }
+    .prof-btn {
+      background: none;
+      border: 1px solid var(--mid);
+      color: var(--mid);
+      font-family: inherit;
+      font-size: clamp(0.72rem, 1.2vw, 0.85rem);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 1px 6px;
+      transition: all 0.1s;
+    }
+    .prof-btn:hover { border-color: var(--active); color: var(--active); }
+
+    /* ── Main content ── */
+    .body {
+      flex: 1;
+      display: flex;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .chart-panel {
+      width: 44%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas { display: block; image-rendering: pixelated; }
+
+    /* ── Sliders panel ── */
+    .sliders {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .slider-rows {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      min-height: 0;
+    }
+    .ax {
+      display: grid;
+      grid-template-columns: minmax(48px, 21%) 1fr minmax(48px, 21%);
+      align-items: center;
+      gap: 5px;
+    }
+    .pole {
+      font-size: clamp(0.78rem, 1.45vw, 1rem);
+      color: var(--mid);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      line-height: 1;
+      transition: color 0.12s;
+    }
+    .pole.l   { text-align: right; }
+    .pole.r   { text-align: left;  }
+    .pole.lit { color: var(--bright); } /* overridden per-level by JS */
+    .sc {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1px;
+    }
+    /* Label row: axis name left, live position label right */
+    .an {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 4px;
+      cursor: help;
+      user-select: none;
+    }
+    .an:hover .ax-name { color: var(--mid); }
+    .ax-name {
+      font-size: clamp(0.58rem, 0.98vw, 0.7rem);
+      color: var(--dim);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .ax-pos {
+      font-size: clamp(0.6rem, 1.02vw, 0.74rem);
+      color: var(--active);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Track */
+    .tw { position: relative; width: 100%; height: 26px; }
+    .ticks {
+      position: absolute;
+      left: 5px; right: 5px; top: 0; bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .ticks span { display: block; width: 1px; height: 7px; background: var(--mid); flex-shrink: 0; }
+    .ticks span:nth-child(4) { height: 11px; background: #5e7854; } /* center (Don't Mind) */
+    .tw.enforce::after {
+      content: '';
+      position: absolute;
+      bottom: 1px; left: 4px; right: 4px;
+      height: 2px;
+      background: var(--enforce);
+      pointer-events: none;
+    }
+    .ax.chart-hover { background: rgba(140, 184, 122, 0.07); }
+    .ax.chart-hover .ax-name { color: var(--active); }
+
+    input[type="range"] {
+      position: absolute;
+      inset: 0;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      background-image: linear-gradient(
+        transparent 0%, transparent calc(50% - 0.5px),
+        var(--mid) calc(50% - 0.5px), var(--mid) calc(50% + 0.5px),
+        transparent calc(50% + 0.5px), transparent 100%
+      );
+      cursor: pointer;
+      outline: none;
+      z-index: 1;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 10px; height: 20px;
+      background: var(--active);
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 10px; height: 20px;
+      background: var(--active);
+      border: none; border-radius: 0;
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-track { height: 1px; background: var(--mid); }
+
+    /* ── Axis info bar (now lives in header center) ── */
+    .axis-info {
+      font-size: clamp(1.2rem, 0.88vw, 0.62rem);
+      color: var(--bright);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.15s;
+    }
+    .axis-info.active { color: var(--bright); }
+
+    /* Footer */
+    .ftr {
+      border-top: 1px solid var(--dim);
+      padding-top: 3px;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: center;
+      font-size: clamp(0.62rem, 1.05vw, 0.72rem);
+      color: var(--dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .ftr.flash { color: var(--active); }
+
+
+    /* ── Profiles overlay ── */
+    .prof-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .prof-overlay.open { display: flex; }
+
+    .prof-panel {
+      background: var(--lcd);
+      border: 2px solid var(--border);
+      width: min(92vw, 640px);
+      max-height: 82vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .prof-panel-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 12px 6px;
+      border-bottom: 1px solid var(--dim);
+      flex-shrink: 0;
+    }
+    .prof-panel-hdr span {
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      color: var(--active);
+      letter-spacing: 0.18em;
+    }
+    .prof-panel-hdr small {
+      font-size: clamp(0.55rem, 1vw, 0.65rem);
+      color: var(--dim);
+      letter-spacing: 0.08em;
+    }
+    .prof-close {
+      background: none;
+      border: 1px solid var(--mid);
+      color: var(--mid);
+      font-family: inherit;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0 6px;
+      line-height: 1.4;
+    }
+    .prof-close:hover { border-color: var(--bright); color: var(--bright); }
+
+    .prof-body {
+      overflow-y: auto;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .prof-section { display: flex; flex-direction: column; gap: 6px; }
+    .prof-cat {
+      font-size: clamp(0.62rem, 1.1vw, 0.72rem);
+      color: var(--gold);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .prof-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+
+    .prof-card {
+      background: none;
+      border: 1px solid var(--mid);
+      color: var(--mid);
+      font-family: inherit;
+      font-size: clamp(0.7rem, 1.3vw, 0.85rem);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      cursor: pointer;
+      transition: all 0.1s;
+      text-align: left;
+    }
+    .prof-card small {
+      display: block;
+      font-size: 0.75em;
+      color: var(--dim);
+      letter-spacing: 0.04em;
+      text-transform: none;
+    }
+    .prof-card:hover {
+      border-color: var(--bright);
+      color: var(--bright);
+      background: rgba(140, 184, 122, 0.07);
+    }
+    .prof-card:hover small { color: var(--mid); }
+
+    /* ── Portrait / Mobile ── */
+    @media (orientation: portrait) {
+      .watch { width: 100vw; height: 100dvh; height: 100vh; clip-path: none; padding: 6px 8px; }
+      .body  { flex-direction: column; }
+      .chart-panel { width: 100%; height: 38%; flex-shrink: 0; }
+      .tw    { height: 20px; }
+      .hdr-title { font-size: clamp(1rem, 4.5vw, 1.35rem); }
+      .hdr-tag   { font-size: clamp(0.82rem, 3vw, 0.98rem); }
+      .pole      { font-size: clamp(0.72rem, 2.6vw, 0.9rem); }
+      .ax-name   { font-size: clamp(0.55rem, 1.8vw, 0.66rem); }
+      .ax-pos    { font-size: clamp(0.57rem, 1.9vw, 0.7rem); }
+      .prof-panel { width: 100vw; max-height: 92vh; }
+    }
+
+    @media (orientation: landscape) and (max-height: 460px) {
+      .watch { width: 100vw; height: 100vh; clip-path: none; padding: 4px 6px; }
+      .tw    { height: 16px; }
+      .ax-name { display: none; }
+      .ax-pos  { font-size: clamp(0.6rem, 1.3vh, 0.74rem); }
+      .pole  { font-size: clamp(0.65rem, 1.3vh, 0.8rem); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="watch">
+  <div class="screen">
+    <div class="hdr">
+      <span class="hdr-title">POLITICAL COMPASS</span>
+      <div class="axis-info" id="axis-info"></div>
+      <div class="hdr-right">
+        <button class="prof-btn" onclick="openProfiles()">PROFILES</button>
+        <button class="prof-btn" onclick="downloadCompass()">↓ PNG</button>
+        <span class="hdr-tag">◄ 12-AXIS ►</span>
+      </div>
+    </div>
+    <div class="body">
+      <div class="chart-panel"><canvas id="rc"></canvas></div>
+      <div class="sliders">
+        <div class="slider-rows" id="slider-rows"></div>
+      </div>
+    </div>
+    <div class="ftr" id="ftr">adjust · url updates on change · share to save</div>
+  </div>
+</div>
+
+<!-- Profiles overlay -->
+<div id="prof-overlay" class="prof-overlay">
+  <div class="prof-panel">
+    <div class="prof-panel-hdr">
+      <div>
+        <span>LOAD PROFILE</span>
+        <small> · select to auto-fill</small>
+      </div>
+      <button class="prof-close" onclick="closeProfiles()">✕ CLOSE</button>
+    </div>
+    <div class="prof-body">
+      <div class="prof-section">
+        <div class="prof-cat">── Historical ──</div>
+        <div class="prof-grid" id="grid-hist"></div>
+      </div>
+      <div class="prof-section">
+        <div class="prof-cat">── Anime ──</div>
+        <div class="prof-grid" id="grid-anime"></div>
+      </div>
+      <div class="prof-section">
+        <div class="prof-cat">── Games ──</div>
+        <div class="prof-grid" id="grid-games"></div>
+      </div>
+      <div class="prof-section">
+        <div class="prof-cat">── Film / TV ──</div>
+        <div class="prof-grid" id="grid-film"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Scale: -3 … +3 (7 steps) ────────────────────────────────────────────────
+// -3 Enforce ◄  -2 Suggest ◄  -1 Mind ◄  0 Don't Mind  +1 Mind ►  +2 Suggest ►  +3 Enforce ►
+function posLabel(v) {
+  return ["ENFORCE ◄","SUGGEST ◄","MIND ◄","DON'T MIND","MIND ►","SUGGEST ►","ENFORCE ►"][v + 3];
+}
+function levelColor(v) {
+  const a = Math.abs(v);
+  if (a === 0) return 'var(--mid)';
+  if (a === 1) return 'var(--mind)';
+  if (a === 2) return 'var(--suggest)';
+  return 'var(--enforce)';
+}
+function levelColorHex(v) {
+  const a = Math.abs(v);
+  if (a === 0) return C.mid;
+  if (a === 1) return C.mind;
+  if (a === 2) return C.suggest;
+  return C.enforce;
+}
+
+let hoverAxis = -1;
+const axLabelPos = [];
+
+// ── Axes (name, short label, left pole, right pole, description) ──
+const AXES = [
+  { name:'ECONOMIC',     s:'ECONOMIC',     icon:'$', l:'Collectivist',      r:'Free Market',     desc:'Collective ownership & central planning vs. private property & free markets. How should resources be organized?' },
+  { name:'AUTHORITY',    s:'AUTHORITY',    icon:'★', l:'Civil Libertarian', r:'Authoritarian',   desc:'Maximum personal freedom vs. strong state control. How much power should government hold over citizens?' },
+  { name:'SOCIAL',       s:'SOCIAL',       icon:'♦', l:'Progressive',       r:'Traditional',     desc:'Rapidly embrace social reform and change vs. preserve cultural traditions and established institutions.' },
+  { name:'IDENTITY',     s:'IDENTITY',     icon:'●', l:'Internationalist',  r:'Nationalist',     desc:'Open borders and global solidarity vs. national sovereignty and cultural preservation first.' },
+  { name:'STATE POWER',  s:'STATE POWER',  icon:'▲', l:'Decentral.',        r:'Centralized',     desc:'Local community self-governance vs. unified national or supranational centralized authority.' },
+  { name:'ECOLOGY',      s:'ECOLOGY',      icon:'♣', l:'Green',             r:'Industrialist',   desc:'Ecological limits and sustainability as primary concerns vs. economic growth and industrial output.' },
+  { name:'RELIGION',     s:'RELIGION',     icon:'†', l:'Secular',           r:'Theocratic',      desc:'Strict separation of church and state vs. governance derived from religious doctrine and values.' },
+  { name:'FGN POLICY',   s:'FGN POLICY',   icon:'⚔', l:'Pacifist',          r:'Militarist',      desc:'Diplomacy, non-intervention and disarmament vs. military strength and strategic foreign intervention.' },
+  { name:'TECHNOLOGY',   s:'TECHNOLOGY',   icon:'⚙', l:'Precautionary',     r:'Accelerationist', desc:'Cautious tech adoption at human scale vs. rapid innovation, disruption and transhumanist acceleration.' },
+  { name:'JUSTICE',      s:'JUSTICE',      icon:'⚖', l:'Rehabilitative',    r:'Punitive',        desc:'Reform offenders and address root social causes vs. retribution, deterrence and strict sentencing.' },
+  { name:'ASSIMILATION', s:'ASSIMILATION', icon:'❖', l:'Multicultural',     r:'Assimilationist', desc:'Celebrate distinct, diverse cultural identities vs. integrating all citizens into a unified national culture.' },
+  { name:'EPISTEMOLOGY', s:'TRUTH',        icon:'👁', l:'Constructivist',    r:'Essentialist',    desc:'Truth and social roles are socially constructed and fluid vs. truth and human nature are objectively inherent.' }
+];
+const N = AXES.length;
+
+// ── Profiles: vals in [-3, +3]  (mapped from old -10/+10 scale) ──────────────
+// bands: -10..-8→-3  -7..-4→-2  -3..-1→-1  0→0  1..3→+1  4..7→+2  8..10→+3
+const PROFILES = [
+  //                                                                                ECON AUTH  SOC IDEN  PWR  ECO  REL  FGN TECH  JUS ASIM EPST
+  { cat:'hist',  name:'Karl Marx',          tag:'Philosopher, 1818',     vals:[ -3, +2, -3, -3, +3,  0, -3, -2, +2, -2,  -2, -2] },
+  { cat:'hist',  name:'Margaret Thatcher',  tag:'UK PM, 1979–90',        vals:[ +3, +2, +3, +3, -1, +2, +2, +2, +2, +3,  +2, +2] },
+  { cat:'hist',  name:'Mahatma Gandhi',     tag:'Activist, 1869–1948',   vals:[ -2, -3, -2, -1, -2, -2, +2, -3, -2, -3,  -1, -1] },
+  { cat:'hist',  name:'Adolf Hitler',       tag:'Dictator, 1933–45',     vals:[ -1, +3, +3, +3, +3, +1, +1, +3, +2, +3,  +3, +3] },
+  { cat:'hist',  name:'Bernie Sanders',     tag:'US Senator, 1941',      vals:[ -2, -1, -2, -2, +1, -2, -2, -2, -1, -2,  -2, -1] },
+  { cat:'hist',  name:'Ayn Rand',           tag:'Philosopher, 1905',     vals:[ +3, -3, -1, -1, -3, +2, -3, -2, +3, +2,   0, +3] },
+  { cat:'hist',  name:'Mao Zedong',         tag:'Chairman, 1949–76',     vals:[ -3, +3, -2, +3, +3, -1, -3, +2, +1, +3,  +2, -2] },
+  { cat:'hist',  name:'Elon Musk',          tag:'Entrepreneur, 1971',    vals:[ +3, -1, +1, +2, -2, +1, -1, -1, +3, +1,  -1, +1] },
+  { cat:'hist',  name:'Vladimir Lenin',     tag:'Revolutionary, 1870',   vals:[ -3, +3, -2, +1, +3, +1, -3, +2, +2, +2,  +1, -2] },
+  { cat:'hist',  name:'Franklin Roosevelt', tag:'US President, 1933–45', vals:[ -1, +1, -1,  0, +1, -1,  0, +2, +1, -1,  +1,  0] },
+  { cat:'hist',  name:'Winston Churchill',  tag:'UK PM, 1940–55',        vals:[ +2, +1, +2, +3, +1, +2, +1, +3, +1, +2,  +3, +2] },
+  { cat:'hist',  name:'Nelson Mandela',     tag:'SA President, 1918',    vals:[ -1, -2, -2, -2, -1, -1,  0,  0,  0, -2,  -3, -2] },
+  { cat:'hist',  name:'Thomas Jefferson',   tag:'US Founder, 1743',      vals:[ +1, -2,  0, +2, -2,  0, -2, -1, +1, -1,  +1, +1] },
+
+  { cat:'anime', name:'Light Yagami',       tag:'Death Note',            vals:[  0, +3, +2, +2, +3,  0, +3, +2, +1, +3,  +1, +2] },
+  { cat:'anime', name:'Lelouch Lamperouge', tag:'Code Geass',            vals:[ -1, +3, -2, -2, +3, -1, -2, -1, +2, -2,  -1, -1] },
+  { cat:'anime', name:'Edward Elric',       tag:'Fullmetal Alchemist',   vals:[ -1, -3, -2, -1, -3, -1, -2, -2, +2, -2,  -1,  0] },
+  { cat:'anime', name:'Spike Spiegel',      tag:'Cowboy Bebop',          vals:[ +1, -2, +1, -1, -2,  0, -2, -2, +1, -1,   0,  0] },
+  { cat:'anime', name:'Erwin Smith',        tag:'Attack on Titan',       vals:[  0, +3, +1, +3, +2,  0, +1, +2, +1, +2,  +1, +1] },
+  { cat:'anime', name:'Makima',             tag:'Chainsaw Man',          vals:[ -2, +3,  0,  0, +3,  0, +3,  0, +2, +3,   0, +2] },
+  { cat:'anime', name:'Vegeta',             tag:'Dragon Ball Z',         vals:[ +2, +2, +2, +3, +2, +1, +1, +3, +2, +3,  +3, +3] },
+  { cat:'anime', name:'Naruto Uzumaki',     tag:'Naruto',                vals:[ -1, -2, -2, -2, -1, -1, -1, -3,  0, -2,  -2, -1] },
+  { cat:'anime', name:'Guts',               tag:'Berserk',               vals:[  0, -3,  0,  0, -3,  0, -2, +3,  0, +2,   0,  0] },
+  { cat:'anime', name:'Roy Mustang',        tag:'Fullmetal Alchemist',   vals:[ -1, -1, -2,  0, -1,  0, -1, -1, +1, -1,  -2,  0] },
+  { cat:'anime', name:'Johan Liebert',      tag:'Monster',               vals:[  0, +2, +2, +3, +1,  0, -1, +1,  0, +3,  +2, +2] },
+  { cat:'anime', name:'Griffith',           tag:'Berserk',               vals:[ -1, +3, +1, +2, +3, +1, +1, +2, +1, +2,  +2, +2] },
+  { cat:'anime', name:'Itachi Uchiha',      tag:'Naruto',                vals:[ -1, -1, -1, -2, -1,  0,  0, -1,  0, -2,  -1, -1] },
+
+  { cat:'games', name:'Geralt of Rivia',    tag:'The Witcher',           vals:[  0, -2, -2, -1, -2, -1, -2, -1,  0, -1,   0,  0] },
+  { cat:'games', name:'Master Chief',       tag:'Halo',                  vals:[ +1, +2, +1, +3, +2, +1,  0, +2, +3, +2,  +1, +1] },
+  { cat:'games', name:'Arthur Morgan',      tag:'Red Dead Redemption 2', vals:[ -1, -2,  0,  0, -2, -1,  0,  0, -1, -1,   0,  0] },
+  { cat:'games', name:'Cmdr. Shepard',      tag:'Mass Effect',           vals:[ -1, -1, -2, -3, -1, -1, -1, +2, +2, -1,  -3,  0] },
+  { cat:'games', name:'Kratos',             tag:'God of War',            vals:[  0, -2, +1,  0, -2,  0, -3, +3,  0, +2,   0, +2] },
+  { cat:'games', name:'Joel Miller',        tag:'The Last of Us',        vals:[  0, -1, +1, +1, -2,  0,  0, +1, -1, +2,   0, +1] },
+
+  { cat:'film',  name:'Darth Vader',        tag:'Star Wars',             vals:[ -1, +3, +3, +2, +3, +1, +2, +3, +3, +3,  +2, +2] },
+  { cat:'film',  name:'Walter White',       tag:'Breaking Bad',          vals:[ +3, +2, +2, +1, +2, +2, -1, +1, +2, +3,  +1, +1] },
+  { cat:'film',  name:'Tyrion Lannister',   tag:'Game of Thrones',       vals:[ +1, -2, -1,  0, -1,  0, -1, -1,  0, -1,  -1, -1] },
+  { cat:'film',  name:'Tony Stark',         tag:'Marvel',                vals:[ +3, -1, -1, +1, -1, -1, -2, +2, +3,  0,   0, +2] },
+  { cat:'film',  name:'Thanos',             tag:'Marvel',                vals:[ -3, +3,  0, -2, +3, -3, -1, +3, +2, +3,   0, +3] },
+  { cat:'film',  name:'V',                  tag:'V for Vendetta',        vals:[ -2, -3, -3, -2, -3,  0, -3, +1,  0, -2,  -3, -2] },
+  { cat:'film',  name:'Tyler Durden',       tag:'Fight Club',            vals:[ -3, -2, +2, +1, -3, -1, -2, +1, -3, +1,  +1, +2] },
+  { cat:'film',  name:'Don Corleone',       tag:'The Godfather',         vals:[ +2, +2, +3, +2, -1,  0, +2, +1, -1, +3,  +2, +2] },
+];
+
+// ── State ──
+let vals = Array(N).fill(0);
+const els = [];   // { slider, lp, rp }
+let ftrTimer = null;
+
+// ── Canvas palette ──
+const C = { dim:'#243020', mid:'#3e5038', active:'#8cb87a', bright:'#c4daa4', mind:'#5aabda', suggest:'#d4a030', enforce:'#d45030' };
+let dither = null;
+
+function mkDither(ctx) {
+  const p = document.createElement('canvas');
+  p.width = 2; p.height = 2;
+  const pc = p.getContext('2d');
+  pc.fillStyle = C.active;
+  pc.fillRect(0,0,1,1); pc.fillRect(1,1,1,1);
+  return ctx.createPattern(p, 'repeat');
+}
+
+function pt(i, v, cx, cy, r0, r1) {
+  const r = r0 + (v + 3) / 6 * (r1 - r0);
+  const a = (i / N) * 2 * Math.PI - Math.PI / 2;
+  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+}
+
+function nGon(ctx, cx, cy, r) {
+  ctx.beginPath();
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * 2 * Math.PI - Math.PI / 2;
+    i === 0 ? ctx.moveTo(cx + r*Math.cos(a), cy + r*Math.sin(a))
+            : ctx.lineTo(cx + r*Math.cos(a), cy + r*Math.sin(a));
+  }
+  ctx.closePath();
+}
+
+function draw(exportCv) {
+  const cv  = exportCv || document.getElementById('rc');
+  const ctx = cv.getContext('2d');
+  const W   = cv.width;
+  const cx  = W/2, cy = W/2;
+  const r0  = W * 0.055;
+  const r1  = W * 0.305;
+  const rL  = W * 0.415;
+
+  if (!exportCv && !dither) dither = mkDither(ctx);
+  const pat = exportCv ? mkDither(ctx) : dither;
+  ctx.clearRect(0, 0, W, W);
+
+  // Guide rings
+  for (let ring = 0; ring <= 4; ring++) {
+    nGon(ctx, cx, cy, r0 + (ring / 4) * (r1 - r0));
+    ctx.strokeStyle = ring === 2 ? C.mid : C.dim;
+    ctx.lineWidth   = ring === 2 ? 1 : 0.5;
+    ctx.stroke();
+  }
+
+  // Spokes
+  ctx.strokeStyle = C.dim; ctx.lineWidth = 0.5;
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * 2 * Math.PI - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + r1 * Math.cos(a), cy + r1 * Math.sin(a));
+    ctx.stroke();
+  }
+
+  // Crosshair
+  const ch = W * 0.022;
+  ctx.strokeStyle = C.dim; ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(cx-ch, cy); ctx.lineTo(cx+ch, cy);
+  ctx.moveTo(cx, cy-ch); ctx.lineTo(cx, cy+ch);
+  ctx.stroke();
+
+  // Dithered fill
+  ctx.beginPath();
+  for (let i = 0; i < N; i++) { const [x,y] = pt(i,vals[i],cx,cy,r0,r1); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+  ctx.closePath();
+  ctx.globalAlpha = 0.62; ctx.fillStyle = pat; ctx.fill(); ctx.globalAlpha = 1;
+
+  // Profile stroke
+  ctx.beginPath();
+  for (let i = 0; i < N; i++) { const [x,y] = pt(i,vals[i],cx,cy,r0,r1); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+  ctx.closePath();
+  ctx.strokeStyle = C.bright; ctx.lineWidth = 1.5; ctx.stroke();
+
+  // Vertex dots
+  ctx.fillStyle = C.bright;
+  for (let i = 0; i < N; i++) {
+    const [x,y] = pt(i,vals[i],cx,cy,r0,r1);
+    ctx.beginPath(); ctx.arc(x, y, 2, 0, 2*Math.PI); ctx.fill();
+  }
+
+  // Axis labels (icon by default, abbreviation on hover)
+  axLabelPos.length = 0;
+  const fs = Math.max(12, Math.round(W * 0.052));
+  ctx.font = `${fs}px VT323, monospace`;
+  for (let i = 0; i < N; i++) {
+    const a = (i/N)*2*Math.PI - Math.PI/2;
+    const ca = Math.cos(a), sa = Math.sin(a);
+    const x = cx + rL*ca, y = cy + rL*sa;
+    axLabelPos.push([x, y]);
+    ctx.textAlign    = ca >  0.2 ? 'left'   : ca < -0.2 ? 'right'  : 'center';
+    ctx.textBaseline = sa < -0.2 ? 'bottom' : sa >  0.2 ? 'top'    : 'middle';
+    const hov = hoverAxis === i;
+    ctx.fillStyle = hov ? C.bright : levelColorHex(vals[i]);
+    ctx.fillText(hov ? AXES[i].s : AXES[i].icon, x, y);
+  }
+}
+
+let rafId = null;
+function sizeCanvas() {
+  const cv = document.getElementById('rc');
+  const panel = cv.parentElement;
+  const sz = Math.min(panel.clientWidth, panel.clientHeight);
+  if (sz <= 0) return;
+  const dpr = window.devicePixelRatio || 1;
+  cv.style.width  = sz + 'px';
+  cv.style.height = sz + 'px';
+  cv.width  = Math.round(sz * dpr);
+  cv.height = Math.round(sz * dpr);
+  dither = null;
+}
+
+// ── Hash ──
+function readHash() {
+  const h = location.hash.slice(1);
+  if (!h) return;
+  const p = h.split(',');
+  if (p.length === N) vals = p.map(v => Math.max(-3, Math.min(3, +v || 0)));
+}
+function writeHash() { history.replaceState(null, '', '#' + vals.join(',')); }
+
+// ── Profile matching ──
+function closestProfiles() {
+  const fictCats = new Set(['anime', 'games', 'film']);
+  let bestHist = null, bestFict = null, bestHistD = Infinity, bestFictD = Infinity;
+  for (const p of PROFILES) {
+    let d = 0;
+    for (let i = 0; i < N; i++) d += Math.abs((p.vals[i] ?? 0) - vals[i]);
+    if (p.cat === 'hist'      && d < bestHistD) { bestHistD = d; bestHist = p; }
+    if (fictCats.has(p.cat)  && d < bestFictD) { bestFictD = d; bestFict = p; }
+  }
+  return { hist: bestHist, fict: bestFict };
+}
+function refreshMatch() {
+  const el = document.getElementById('axis-info');
+  if (el.classList.contains('active')) return;
+  const { hist, fict } = closestProfiles();
+  el.textContent = 'SAME PROFILE AS: '
+    + (hist ? hist.name.toUpperCase() : '—')
+    + '  ·  '
+    + (fict ? fict.name.toUpperCase() : '—');
+}
+
+// ── Axis info bar ──
+function setInfo(idx) {
+  const el = document.getElementById('axis-info');
+  if (idx < 0) {
+    el.classList.remove('active');
+    refreshMatch();
+  } else {
+    el.textContent = AXES[idx].name + ': ' + AXES[idx].desc;
+    el.classList.add('active');
+  }
+}
+
+// ── Slider highlight + position label ──
+function updateRow(i) {
+  const v = vals[i];
+  const col = levelColor(v);
+  els[i].lp.classList.toggle('lit', v < 0);
+  els[i].rp.classList.toggle('lit', v > 0);
+  els[i].lp.style.color = v < 0 ? col : '';
+  els[i].rp.style.color = v > 0 ? col : '';
+  els[i].posEl.textContent = posLabel(v);
+  els[i].posEl.style.color = col;
+  els[i].tw.classList.toggle('enforce', Math.abs(v) === 3);
+}
+
+// ── Build sliders ──
+function buildSliders() {
+  const cont = document.getElementById('slider-rows');
+  AXES.forEach((ax, i) => {
+    const row = document.createElement('div');
+    row.className = 'ax';
+
+    const lp = document.createElement('div');
+    lp.className = 'pole l'; lp.textContent = ax.l;
+
+    const sc = document.createElement('div'); sc.className = 'sc';
+
+    const an = document.createElement('div');
+    an.className = 'an';
+    an.title = ax.desc;
+    an.addEventListener('mouseenter', () => setInfo(i));
+    an.addEventListener('mouseleave', () => setInfo(-1));
+    an.addEventListener('click',      () => setInfo(i));
+    const axName = document.createElement('span');
+    axName.className = 'ax-name'; axName.textContent = ax.name;
+    const axPos = document.createElement('span');
+    axPos.className = 'ax-pos';
+    an.appendChild(axName); an.appendChild(axPos);
+
+    const tw = document.createElement('div'); tw.className = 'tw';
+    const ticks = document.createElement('div'); ticks.className = 'ticks';
+    for (let t = 0; t < 7; t++) ticks.appendChild(document.createElement('span'));
+
+    const sl = document.createElement('input');
+    sl.type = 'range'; sl.min = -3; sl.max = 3; sl.step = 1; sl.value = vals[i];
+    sl.setAttribute('aria-label', ax.name);
+    sl.addEventListener('input', () => {
+      vals[i] = +sl.value; updateRow(i); writeHash(); draw(); refreshMatch();
+    });
+    sl.addEventListener('wheel', e => {
+      e.preventDefault();
+      vals[i] = Math.max(-3, Math.min(3, vals[i] + (e.deltaY < 0 ? 1 : -1)));
+      sl.value = vals[i]; updateRow(i); writeHash(); draw(); refreshMatch();
+    }, { passive: false });
+
+    tw.appendChild(ticks); tw.appendChild(sl);
+    sc.appendChild(an); sc.appendChild(tw);
+
+    const rp = document.createElement('div');
+    rp.className = 'pole r'; rp.textContent = ax.r;
+
+    els.push({ slider: sl, lp, rp, posEl: axPos, tw, row });
+    row.appendChild(lp); row.appendChild(sc); row.appendChild(rp);
+    cont.appendChild(row);
+    updateRow(i);
+  });
+}
+
+// ── Profiles panel ──
+function buildProfiles() {
+  const catMap = { hist:'grid-hist', anime:'grid-anime', games:'grid-games', film:'grid-film' };
+  PROFILES.forEach(p => {
+    const grid = document.getElementById(catMap[p.cat]);
+    if (!grid) return;
+    const btn = document.createElement('button');
+    btn.className = 'prof-card';
+    btn.innerHTML = p.name + '<small>' + p.tag + '</small>';
+    btn.onclick = () => loadProfile(p.name, p.vals);
+    grid.appendChild(btn);
+  });
+}
+
+function openProfiles()  { document.getElementById('prof-overlay').classList.add('open'); }
+function closeProfiles() { document.getElementById('prof-overlay').classList.remove('open'); }
+
+document.addEventListener('click', e => {
+  const overlay = document.getElementById('prof-overlay');
+  if (e.target === overlay) closeProfiles();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeProfiles(); });
+
+function loadProfile(name, profileVals) {
+  vals = profileVals.map(v => Math.max(-3, Math.min(3, v)));
+  els.forEach(({ slider }, i) => { slider.value = vals[i]; updateRow(i); });
+  writeHash(); draw(); closeProfiles(); refreshMatch();
+  // Flash profile name in footer
+  const ftr = document.getElementById('ftr');
+  ftr.textContent = 'PROFILE: ' + name.toUpperCase();
+  ftr.classList.add('flash');
+  clearTimeout(ftrTimer);
+  ftrTimer = setTimeout(() => {
+    ftr.textContent = 'adjust · url updates on change · share to save';
+    ftr.classList.remove('flash');
+  }, 3500);
+}
+
+// ── Hash change (back/forward) ──
+window.addEventListener('hashchange', () => {
+  readHash();
+  els.forEach(({ slider }, i) => { slider.value = vals[i]; updateRow(i); });
+  draw(); refreshMatch();
+});
+
+// ── Init ──
+readHash();
+buildSliders();
+buildProfiles();
+writeHash();
+refreshMatch();
+
+// Canvas axis-icon hover
+const cvEl = document.getElementById('rc');
+cvEl.addEventListener('mousemove', e => {
+  const rect = cvEl.getBoundingClientRect();
+  const sx = cvEl.width / rect.width, sy = cvEl.height / rect.height;
+  const mx = (e.clientX - rect.left) * sx, my = (e.clientY - rect.top) * sy;
+  const thr = cvEl.width * 0.08;
+  let found = -1;
+  for (let i = 0; i < N; i++) {
+    if (axLabelPos[i] && Math.hypot(mx - axLabelPos[i][0], my - axLabelPos[i][1]) < thr) { found = i; break; }
+  }
+  if (found !== hoverAxis) {
+    hoverAxis = found; draw();
+    els.forEach(({ row }, i) => row.classList.toggle('chart-hover', i === found));
+  }
+  cvEl.style.cursor = found !== -1 ? 'pointer' : 'default';
+});
+cvEl.addEventListener('mouseleave', () => {
+  if (hoverAxis !== -1) {
+    hoverAxis = -1; draw();
+    els.forEach(({ row }) => row.classList.remove('chart-hover'));
+    cvEl.style.cursor = 'default';
+  }
+});
+
+function downloadCompass() {
+  const sz = 900;
+  const off = document.createElement('canvas');
+  off.width = off.height = sz;
+  const ctx = off.getContext('2d');
+  ctx.fillStyle = '#0b0d07';
+  ctx.fillRect(0, 0, sz, sz);
+  draw(off);
+  const link = document.createElement('a');
+  link.download = 'compass.png';
+  link.href = off.toDataURL('image/png');
+  link.click();
+}
+
+window.addEventListener('load', () => {
+  requestAnimationFrame(() => { sizeCanvas(); draw(); document.fonts.ready.then(() => draw()); });
+});
+window.addEventListener('resize', () => {
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(() => { sizeCanvas(); draw(); rafId = null; });
+});
+</script>
+</body>
+</html>
