@@ -5,22 +5,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Political Compass</title>
-  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=IBM+Plex+Sans:wght@300;400;500;700&family=Red+Hat+Display:wght@700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:     #050505;
-      --bezel:  #17140d;
-      --lcd:    #0a0906;
-      --dim:    #2a2410;
-      --mid:    #4a3f1a;
-      --border: #3a3320;
+      --bg:     #0a0a0c;
+      --bezel:  #141417;
+      --lcd:    #141417;
+      --dim:    #4b4b52;
+      --mid:    #52525b;
+      --border: #29292f;
       --gold:   #eab308;
       --active: #eab308;
-      --bright: #fde68a;
-      --mind:    #5aabda;
-      --suggest: #e0a72e;
-      --enforce: #d45030;
+      --bright: #fbbf24;
+      --mind:    #3b82f6;
+      --suggest: #eab308;
+      --enforce: #ef4444;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,7 +28,7 @@
       height: 100%;
       overflow: hidden;
       background: var(--bg);
-      font-family: 'VT323', 'Courier New', monospace;
+      font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
     }
 
     body {
@@ -77,22 +76,25 @@
 
     /* ── Casio octagonal bezel ── */
     .watch {
-      background: var(--bezel);
-      clip-path: polygon(3.5% 0%, 96.5% 0%, 100% 3.5%, 100% 96.5%, 96.5% 100%, 3.5% 100%, 0% 96.5%, 0% 3.5%);
-      padding: 9px 11px;
+      background: linear-gradient(180deg, #17140d 0%, #0c0a06 100%);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(234,179,8,0.05);
+      padding: 12px 14px;
       width:  min(98vw, calc((100vh - 70px) * 1.88));
       height: min(calc(100vh - 70px), 98vw / 1.88);
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 6px;
     }
 
     /* ── LCD screen ── */
     .screen {
       flex: 1;
       background: var(--lcd);
-      border: 2px solid var(--border);
-      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -110,9 +112,12 @@
       gap: 8px;
     }
     .hdr-title {
-      font-size: clamp(1.1rem, 2.4vw, 1.5rem);
-      color: var(--active);
-      letter-spacing: 0.18em;
+      font-family: 'Red Hat Display', 'IBM Plex Sans', sans-serif;
+      font-size: clamp(1rem, 2.2vw, 1.4rem);
+      font-weight: 900;
+      background: linear-gradient(130deg, #fef08a 0%, #eab308 50%, #b45309 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+      letter-spacing: 0.04em;
       flex-shrink: 0;
     }
     .hdr-right {
@@ -122,9 +127,11 @@
       flex-shrink: 0;
     }
     .hdr-tag {
-      font-size: clamp(0.85rem, 1.5vw, 1.05rem);
-      color: var(--gold);
-      letter-spacing: 0.22em;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: clamp(0.6rem, 1.2vw, 0.72rem);
+      color: #71717a;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
     .prof-btn {
       background: none;
@@ -156,7 +163,7 @@
       justify-content: center;
     }
 
-    canvas { display: block; image-rendering: pixelated; }
+    canvas { display: block; }
 
     /* ── Sliders panel ── */
     .sliders {
@@ -246,7 +253,7 @@
       background: var(--enforce);
       pointer-events: none;
     }
-    .ax.chart-hover { background: rgba(140, 184, 122, 0.07); }
+    .ax.chart-hover { background: rgba(234, 179, 8, 0.07); border-radius: 6px; }
     .ax.chart-hover .ax-name { color: var(--active); }
 
     input[type="range"] {
@@ -256,9 +263,9 @@
       appearance: none;
       background: transparent;
       background-image: linear-gradient(
-        transparent 0%, transparent calc(50% - 0.5px),
-        var(--mid) calc(50% - 0.5px), var(--mid) calc(50% + 0.5px),
-        transparent calc(50% + 0.5px), transparent 100%
+        transparent 0%, transparent calc(50% - 1px),
+        var(--mid) calc(50% - 1px), var(--mid) calc(50% + 1px),
+        transparent calc(50% + 1px), transparent 100%
       );
       cursor: pointer;
       outline: none;
@@ -266,23 +273,29 @@
     }
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 10px; height: 20px;
+      width: 16px; height: 16px; border-radius: 50%;
       background: var(--active);
+      border: 2px solid var(--bg);
+      box-shadow: 0 0 0 1px rgba(234,179,8,.5), 0 2px 5px rgba(0,0,0,.55);
       cursor: pointer;
+      transition: transform 0.1s;
     }
+    input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.12); }
+    input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(234,179,8,.35); }
     input[type="range"]::-moz-range-thumb {
-      width: 10px; height: 20px;
+      width: 16px; height: 16px; border-radius: 50%;
       background: var(--active);
-      border: none; border-radius: 0;
+      border: 2px solid var(--bg);
+      box-shadow: 0 2px 5px rgba(0,0,0,.55);
       cursor: pointer;
     }
-    input[type="range"]::-moz-range-track { height: 1px; background: var(--mid); }
+    input[type="range"]::-moz-range-track { height: 2px; background: var(--mid); }
 
     /* ── Axis info bar (now lives in header center) ── */
     .axis-info {
-      font-size: clamp(1.2rem, 0.88vw, 0.62rem);
-      color: var(--bright);
-      letter-spacing: 0.05em;
+      font-size: clamp(0.6rem, 0.9vw, 0.72rem);
+      color: #a1a1aa;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
       text-align: center;
       white-space: nowrap;
@@ -307,26 +320,46 @@
     }
     .ftr.flash { color: var(--active); }
 
+    /* ── "for reference only" warning chip ── */
+    .warn-chip {
+      font-size: clamp(0.5rem, 0.95vw, 0.62rem);
+      color: var(--suggest);
+      border: 1px solid var(--suggest);
+      border-radius: 4px;
+      padding: 1px 6px;
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+      cursor: help;
+      opacity: 0.85;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .warn-chip:hover { opacity: 1; }
 
     /* ── Profiles overlay ── */
     .prof-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.78);
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 100;
+      padding: 16px;
     }
     .prof-overlay.open { display: flex; }
 
     .prof-panel {
       background: var(--lcd);
-      border: 2px solid var(--border);
-      width: min(92vw, 640px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+      width: min(92vw, 660px);
       max-height: 82vh;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
     .prof-panel-hdr {
       display: flex;
@@ -348,15 +381,16 @@
     }
     .prof-close {
       background: none;
-      border: 1px solid var(--mid);
-      color: var(--mid);
+      border: 1px solid var(--border);
+      color: var(--text-dim, #a1a1aa);
       font-family: inherit;
-      font-size: 1rem;
+      font-size: 0.8rem;
       cursor: pointer;
-      padding: 0 6px;
-      line-height: 1.4;
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: all 0.12s;
     }
-    .prof-close:hover { border-color: var(--bright); color: var(--bright); }
+    .prof-close:hover { border-color: var(--enforce); color: var(--enforce); }
 
     .prof-body {
       overflow-y: auto;
@@ -375,29 +409,30 @@
     .prof-grid { display: flex; flex-wrap: wrap; gap: 5px; }
 
     .prof-card {
-      background: none;
-      border: 1px solid var(--mid);
-      color: var(--mid);
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      color: #e4e4e7;
       font-family: inherit;
-      font-size: clamp(0.7rem, 1.3vw, 0.85rem);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 3px 9px;
+      font-size: clamp(0.74rem, 1.2vw, 0.84rem);
+      letter-spacing: 0.005em;
+      padding: 6px 11px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.1s;
+      transition: all 0.12s;
       text-align: left;
     }
     .prof-card small {
       display: block;
-      font-size: 0.75em;
-      color: var(--dim);
-      letter-spacing: 0.04em;
+      font-size: 0.76em;
+      color: #71717a;
+      letter-spacing: 0.01em;
       text-transform: none;
+      margin-top: 1px;
     }
     .prof-card:hover {
       border-color: var(--bright);
       color: var(--bright);
-      background: rgba(140, 184, 122, 0.07);
+      background: rgba(234, 179, 8, 0.08);
     }
     .prof-card:hover small { color: var(--mid); }
 
@@ -421,6 +456,7 @@
       .ax-name { display: none; }
       .ax-pos  { font-size: clamp(0.6rem, 1.3vh, 0.74rem); }
       .pole  { font-size: clamp(0.65rem, 1.3vh, 0.8rem); }
+      .warn-chip { display: none; }
     }
   </style>
 </head>
@@ -441,7 +477,8 @@
       <span class="hdr-title">POLITICAL COMPASS</span>
       <div class="axis-info" id="axis-info"></div>
       <div class="hdr-right">
-        <span class="hdr-tag">◄ 12-AXIS ►</span>
+        <span class="warn-chip" title="A playful reference tool — not a scientific, professional, or serious political assessment. All placements are impressionistic broad strokes.">⚠ REFERENCE ONLY</span>
+        <span class="hdr-tag">12 axes</span>
       </div>
     </div>
     <div class="body">
@@ -461,29 +498,37 @@
     <div class="prof-panel-hdr">
       <div>
         <span>LOAD PROFILE</span>
-        <small> · select to auto-fill</small>
+        <small> · select to auto-fill · for fun &amp; reference, not a serious assessment</small>
       </div>
       <button class="prof-close" onclick="closeProfiles()">✕ CLOSE</button>
     </div>
     <div class="prof-body">
       <div class="prof-section">
-        <div class="prof-cat">── Presidents &amp; Leaders ──</div>
+        <div class="prof-cat">Presidents &amp; Leaders</div>
         <div class="prof-grid" id="grid-pres"></div>
       </div>
       <div class="prof-section">
-        <div class="prof-cat">── Historical ──</div>
+        <div class="prof-cat">Historical</div>
         <div class="prof-grid" id="grid-hist"></div>
       </div>
       <div class="prof-section">
-        <div class="prof-cat">── Anime ──</div>
+        <div class="prof-cat">Thinkers</div>
+        <div class="prof-grid" id="grid-thinkers"></div>
+      </div>
+      <div class="prof-section">
+        <div class="prof-cat">Tech &amp; Business</div>
+        <div class="prof-grid" id="grid-tech"></div>
+      </div>
+      <div class="prof-section">
+        <div class="prof-cat">Anime</div>
         <div class="prof-grid" id="grid-anime"></div>
       </div>
       <div class="prof-section">
-        <div class="prof-cat">── Games ──</div>
+        <div class="prof-cat">Games</div>
         <div class="prof-grid" id="grid-games"></div>
       </div>
       <div class="prof-section">
-        <div class="prof-cat">── Film / TV ──</div>
+        <div class="prof-cat">Film / TV</div>
         <div class="prof-grid" id="grid-film"></div>
       </div>
     </div>
@@ -623,6 +668,86 @@ const PROFILES = [
   { cat:'pres',  name:'Kim Jong-un',        tag:'🇰🇵 North Korea',       vals:[ -3, +3, +2, +3, +3, +1, -2, +3, -1, +3,  +3, +2] },
   { cat:'pres',  name:'Lee Kuan Yew',       tag:'🇸🇬 Singapore',         vals:[ +2, +2, +2, +2, +3,  0, -1,  0, +2, +3,  +2, +1] },
   { cat:'pres',  name:'Cyril Ramaphosa',    tag:'🇿🇦 South Africa',      vals:[ -1,  0,  0,  0,  0,  0,  0, -1,  0, +1,  -2,  0] },
+
+  // ── more Historical figures ──
+  { cat:'hist',  name:'Napoleon Bonaparte', tag:'Emperor, 1769–1821',   vals:[  0, +3, +1, +3, +3,  0, -1, +3, +1, +2,  +2, +2] },
+  { cat:'hist',  name:'Julius Caesar',      tag:'Roman Dictator',       vals:[  0, +3, +1, +3, +3,  0, +1, +3,  0, +2,  +2, +2] },
+  { cat:'hist',  name:'Genghis Khan',       tag:'Mongol Khan',          vals:[  0, +3, +1, +3, +2, +1,  0, +3,  0, +3,  +1, +2] },
+  { cat:'hist',  name:'Joseph Stalin',      tag:'USSR, 1922–53',        vals:[ -3, +3, +1, +2, +3, +1, -3, +3, +1, +3,  +2, -1] },
+  { cat:'hist',  name:'Leon Trotsky',       tag:'Revolutionary, 1879',  vals:[ -3, +2, -2, -3, +2,  0, -3, +2, +1, +1,  -1, -2] },
+  { cat:'hist',  name:'Malcolm X',          tag:'Activist, 1925–65',    vals:[ -1, +1,  0, +2,  0,  0, +2, +2,  0, +1,  +1, +1] },
+  { cat:'hist',  name:'Martin L. King Jr.', tag:'Activist, 1929–68',    vals:[ -1, -2, -1, -1,  0, -1, +1, -3,  0, -2,  -2, -1] },
+  { cat:'hist',  name:'Simón Bolívar',      tag:'Liberator, 1783',      vals:[  0, +1,  0, +2, +1,  0, +1, +2,  0, +1,  +1, +1] },
+  { cat:'hist',  name:'Otto von Bismarck',  tag:'Chancellor, 1815',     vals:[ +1, +2, +2, +3, +3,  0,  0, +3, +1, +2,  +2, +2] },
+  { cat:'hist',  name:'Alexander the Great',tag:'King, 356 BC',         vals:[  0, +2, +1, +2, +2,  0, +1, +3,  0, +2,  -1, +2] },
+  { cat:'hist',  name:'Sun Tzu',            tag:'Strategist, 544 BC',   vals:[  0, +1, +1, +1, +1,  0,  0, +2,  0, +1,  +1, +2] },
+  { cat:'hist',  name:'Oda Nobunaga',       tag:'Daimyō, 1534',         vals:[ +1, +3, -1, +2, +2,  0, -1, +3, +1, +3,  +1, +1] },
+
+  // ── Thinkers (philosophers, writers, scientists) ──
+  { cat:'thinkers', name:'Friedrich Nietzsche', tag:'Philosopher, 1844', vals:[ +1, -2, +1, +1, -2,  0, -3, +1, +1, +1,  +1, +3] },
+  { cat:'thinkers', name:'Plato',             tag:'Philosopher, 428 BC', vals:[  0, +2, +2, +1, +2,  0, +1, +1, -1, +1,  +2, +3] },
+  { cat:'thinkers', name:'Aristotle',         tag:'Philosopher, 384 BC', vals:[ +1, +1, +1, +1, +1,  0, +1,  0,  0, +1,  +1, +3] },
+  { cat:'thinkers', name:'Immanuel Kant',     tag:'Philosopher, 1724',   vals:[ +1,  0, +1, -1,  0,  0, +1, -2,  0, +2,   0, +3] },
+  { cat:'thinkers', name:'Adam Smith',        tag:'Economist, 1723',     vals:[ +3, -2,  0,  0, -2, +1, -1, -1, +1,  0,   0, +2] },
+  { cat:'thinkers', name:'John Locke',        tag:'Philosopher, 1632',   vals:[ +2, -2,  0, +1, -2,  0,  0, -1,  0,  0,  +1, +2] },
+  { cat:'thinkers', name:'J.-J. Rousseau',    tag:'Philosopher, 1712',   vals:[ -1, -1, -2,  0, -1, -2, -1, -1, -2, -1,  -1, -1] },
+  { cat:'thinkers', name:'George Orwell',     tag:'Writer, 1903',        vals:[ -1, -2, -1,  0, -1, -1, -1, -1,  0, -1,  -1, +1] },
+  { cat:'thinkers', name:'Noam Chomsky',      tag:'Linguist, 1928',      vals:[ -2, -3, -2, -2, -2, -2, -3, -3,  0, -2,  -2, -1] },
+  { cat:'thinkers', name:'Michel Foucault',   tag:'Philosopher, 1926',   vals:[ -2, -2, -3, -1, -2, -1, -3, -1,  0, -2,  -1, -3] },
+  { cat:'thinkers', name:'Karl Popper',       tag:'Philosopher, 1902',   vals:[ +1, -2,  0,  0, -1,  0, -2, -1, +1,  0,   0, +2] },
+  { cat:'thinkers', name:'Simone de Beauvoir',tag:'Philosopher, 1908',   vals:[ -1, -2, -3, -1, -1, -1, -3, -1,  0, -2,  -2, -3] },
+  { cat:'thinkers', name:'Albert Einstein',   tag:'Physicist, 1879',     vals:[ -1, -2, -2, -2,  0, -1, -2, -3, +1, -1,  -2,  0] },
+  { cat:'thinkers', name:'Confucius',         tag:'Philosopher, 551 BC', vals:[ +1, +2, +3, +1, +2,  0, +1, -1, -1, +1,  +2, +2] },
+  { cat:'thinkers', name:'N. Machiavelli',    tag:'Philosopher, 1469',   vals:[ +1, +2, +1, +2, +1,  0, +1, +2,  0, +2,  +1, +2] },
+
+  // ── Tech & Business ──
+  { cat:'tech',  name:'Steve Jobs',         tag:'Apple',                 vals:[ +3, +1,  0, +1, -1,  0, -1,  0, +3, +1,   0, +2] },
+  { cat:'tech',  name:'Bill Gates',         tag:'Microsoft',             vals:[ +2, -1, -1, -1,  0, -2, -1, -1, +2,  0,  -1, +1] },
+  { cat:'tech',  name:'Jeff Bezos',         tag:'Amazon',                vals:[ +3,  0, +1, +1, -1, +1, -1, +1, +3, +1,   0, +2] },
+  { cat:'tech',  name:'Mark Zuckerberg',    tag:'Meta',                  vals:[ +3,  0,  0,  0, -1,  0, -1,  0, +3,  0,  -1, +1] },
+  { cat:'tech',  name:'Sam Altman',         tag:'OpenAI',                vals:[ +2,  0, -1,  0, -1,  0, -2,  0, +3,  0,  -1, +1] },
+  { cat:'tech',  name:'Peter Thiel',        tag:'PayPal / Palantir',     vals:[ +3, -1, +1, +2, -2, +1,  0, +1, +3, +1,   0, +3] },
+  { cat:'tech',  name:'Warren Buffett',     tag:'Berkshire Hathaway',    vals:[ +2,  0, +1,  0, -1,  0,  0, -1,  0, +1,   0, +1] },
+  { cat:'tech',  name:'Vitalik Buterin',    tag:'Ethereum',              vals:[ +1, -3, -1, -2, -3,  0, -2, -2, +3, -1,  -1, +1] },
+  { cat:'tech',  name:'Satya Nadella',      tag:'Microsoft',             vals:[ +2,  0, -1, -1,  0, -1, -1, -1, +2,  0,  -1, +1] },
+  { cat:'tech',  name:'Jack Ma',            tag:'Alibaba',               vals:[ +2, +1, +1, +1, +1,  0, -1,  0, +2, +1,  +1, +1] },
+
+  // ── more Anime ──
+  { cat:'anime', name:'Saitama',            tag:'One Punch Man',         vals:[  0, -2,  0, -1, -2,  0, -1, +1,  0,  0,   0,  0] },
+  { cat:'anime', name:'All Might',          tag:'My Hero Academia',      vals:[  0, -1,  0, +1, -1,  0,  0, +1, +1, +1,   0, +1] },
+  { cat:'anime', name:'Char Aznable',       tag:'Gundam',                vals:[ -1, +2, -1, +1, +2, -1, -1, +2, +1, +1,   0,  0] },
+  { cat:'anime', name:'Meruem',             tag:'Hunter × Hunter',       vals:[ +1, +3, +1, +2, +3,  0, -1, +2, +1, +2,  +1, +2] },
+  { cat:'anime', name:'Sōsuke Aizen',       tag:'Bleach',                vals:[  0, +3,  0, -1, +3,  0, -2, +2, +2, +3,   0, +3] },
+  { cat:'anime', name:'Thorfinn',           tag:'Vinland Saga',          vals:[ -1, -3, -1, -2, -3, -1, -1, -3, -1, -2,  -1, -1] },
+  { cat:'anime', name:'Killua Zoldyck',     tag:'Hunter × Hunter',       vals:[  0, -2,  0, -1, -2,  0, -1,  0,  0, -1,   0,  0] },
+  { cat:'anime', name:'Reinhard v. Lohengramm', tag:'LotGH',            vals:[ +1, +3, +1, +2, +3,  0, -1, +3, +1, +2,  +2, +2] },
+  { cat:'anime', name:'Shougo Makishima',   tag:'Psycho-Pass',           vals:[ +1, -3, +1,  0, -3,  0, -1, +1, -1, -2,  +1, +3] },
+  { cat:'anime', name:'Zeke Yeager',        tag:'Attack on Titan',       vals:[ -2, +2, -1, -1, +2,  0, -1, +1, +1, +1,  +1,  0] },
+
+  // ── more Games ──
+  { cat:'games', name:'Solid Snake',        tag:'Metal Gear',            vals:[  0, -2,  0,  0, -2,  0, -1, +1, +1, -1,   0,  0] },
+  { cat:'games', name:'Sephiroth',          tag:'Final Fantasy VII',     vals:[ -1, +2, +1, +1, +2, -1, -1, +3, +2, +2,   0, +2] },
+  { cat:'games', name:'Handsome Jack',      tag:'Borderlands',           vals:[ +3, +2, +1, +1, +1, +2, -1, +2, +3, +2,   0, +2] },
+  { cat:'games', name:'GLaDOS',             tag:'Portal',                vals:[ +1, +3, +1,  0, +3, +1, -3, +2, +3, +3,   0, +3] },
+  { cat:'games', name:'Doomguy',            tag:'DOOM',                  vals:[  0, -1,  0, +1, -1, +1, -2, +3, +2, +3,   0, +1] },
+  { cat:'games', name:'Ezio Auditore',      tag:"Assassin's Creed",      vals:[  0, -2, -1,  0, -2,  0, -2, +1,  0, +1,  -1,  0] },
+  { cat:'games', name:'Cloud Strife',       tag:'Final Fantasy VII',     vals:[ -1, -2, -1, -1, -2, -2, -1, +1, +1, -1,   0,  0] },
+  { cat:'games', name:'Sole Survivor',      tag:'Fallout',               vals:[ +2, -2, +1, +1, -2, +2, -1, +1, +2, +1,   0, +1] },
+  { cat:'games', name:'Nathan Drake',       tag:'Uncharted',             vals:[ +1, -1,  0,  0, -1,  0, -1,  0,  0,  0,   0,  0] },
+
+  // ── more Film / TV ──
+  { cat:'film',  name:'Michael Corleone',   tag:'The Godfather',         vals:[ +2, +2, +2, +2,  0,  0, +1, +2,  0, +3,  +1, +2] },
+  { cat:'film',  name:'Anton Chigurh',      tag:'No Country for Old Men',vals:[  0, +1, +1,  0, -1,  0,  0, +2,  0, +3,   0, +3] },
+  { cat:'film',  name:'Patrick Bateman',    tag:'American Psycho',       vals:[ +3,  0, +1, +1, -1, +1, -1, +1, +1, +2,  +1, +2] },
+  { cat:'film',  name:'Travis Bickle',      tag:'Taxi Driver',           vals:[  0, +1, +2, +2, -1,  0, +1, +2,  0, +2,  +1, +2] },
+  { cat:'film',  name:'Ellen Ripley',       tag:'Alien',                 vals:[  0, -1,  0,  0, -1, -1, -1, +1, +1, +1,  -1,  0] },
+  { cat:'film',  name:'John Wick',          tag:'John Wick',             vals:[  0, -1,  0,  0, -2,  0, -1, +2,  0, +1,   0, +1] },
+  { cat:'film',  name:'Neo',                tag:'The Matrix',            vals:[ -1, -2, -1, -1, -2, -1, -1, +1, -1, -1,  -1, -3] },
+  { cat:'film',  name:'Magneto',            tag:'X-Men',                 vals:[ -1, +2,  0, +3, +1,  0, -1, +3, +1, +2,  +2, +1] },
+  { cat:'film',  name:'Katniss Everdeen',   tag:'The Hunger Games',      vals:[ -1, -2, -1, -1, -1, -1, -1, +1,  0, -1,  -1, -1] },
+  { cat:'film',  name:'Col. Kurtz',         tag:'Apocalypse Now',        vals:[  0, +3, +2,  0, -2,  0, +1, +3, -1, +3,   0, +3] },
+  { cat:'film',  name:'Immortan Joe',       tag:'Mad Max: Fury Road',    vals:[ +1, +3, +3, +2, +3, +3, +3, +3, -1, +3,  +2, +3] },
+  { cat:'film',  name:'Rick Deckard',       tag:'Blade Runner',          vals:[  0,  0,  0,  0,  0,  0, -1,  0, +1, +1,   0, -1] },
 ];
 
 // ── Countries: broad-strokes 12-axis placements for the "feel at home" hint.
@@ -730,6 +855,61 @@ const COUNTRIES = [
   { flag:'🇰🇿', name:'Kazakhstan',   vals:[+1,+3,+2,+2,+3,+1, 0, 0,+1,+2,+2,+1] },
   { flag:'🇲🇳', name:'Mongolia',     vals:[ 0, 0,+1,+1, 0, 0, 0,-1, 0,+1,+1,+1] },
   { flag:'🇹🇼', name:'Taiwan',       vals:[+1,-1, 0,+1, 0, 0,-1,+1,+3,+1, 0, 0] },
+  // ── more Europe / Balkans / Caucasus ──
+  { flag:'🇸🇮', name:'Slovenia',     vals:[-1, 0, 0, 0, 0,-1,-1,-1, 0, 0, 0, 0] },
+  { flag:'🇦🇱', name:'Albania',      vals:[ 0,+1,+1,+1,+1, 0, 0, 0, 0,+1,+1,+1] },
+  { flag:'🇲🇰', name:'North Macedonia', vals:[ 0,+1,+2,+2,+1, 0,+1, 0, 0,+1,+1,+1] },
+  { flag:'🇧🇦', name:'Bosnia & H.',  vals:[ 0,+1,+2,+2, 0, 0,+1, 0, 0,+1,+2,+1] },
+  { flag:'🇲🇪', name:'Montenegro',   vals:[ 0,+1,+1,+2,+1, 0,+1, 0, 0,+1,+1,+1] },
+  { flag:'🇽🇰', name:'Kosovo',       vals:[+1,+1,+2,+2, 0, 0,+1, 0, 0,+1,+1,+1] },
+  { flag:'🇲🇩', name:'Moldova',      vals:[ 0,+1,+2,+1,+1, 0,+1, 0, 0,+1,+1,+1] },
+  { flag:'🇨🇾', name:'Cyprus',       vals:[ 0, 0,+1,+1,+1,-1,+1, 0, 0, 0,+1,+1] },
+  { flag:'🇲🇹', name:'Malta',        vals:[ 0, 0,+1, 0, 0,-1,+1,-2, 0, 0, 0, 0] },
+  { flag:'🇬🇪', name:'Georgia',      vals:[+1,+1,+2,+2,+1, 0,+2, 0, 0,+1,+1,+1] },
+  { flag:'🇦🇲', name:'Armenia',      vals:[ 0,+1,+2,+2,+1, 0,+2,+1, 0,+1,+2,+1] },
+  { flag:'🇦🇿', name:'Azerbaijan',   vals:[+1,+3,+2,+2,+3,+1,+1,+2, 0,+2,+2,+2] },
+  { flag:'🇺🇿', name:'Uzbekistan',   vals:[-1,+3,+2,+2,+3, 0,+1, 0, 0,+2,+2,+1] },
+  { flag:'🇹🇲', name:'Turkmenistan', vals:[-2,+3,+2,+3,+3,+1, 0, 0,-1,+3,+2,+1] },
+  { flag:'🇰🇬', name:'Kyrgyzstan',   vals:[ 0,+1,+2,+1,+1, 0,+1, 0, 0,+1,+1,+1] },
+  { flag:'🇹🇯', name:'Tajikistan',   vals:[-1,+3,+2,+2,+3, 0,+1,+1,-1,+2,+2,+2] },
+  // ── more Latin America / Caribbean ──
+  { flag:'🇬🇹', name:'Guatemala',    vals:[+1,+1,+2,+1, 0, 0,+2, 0, 0,+2, 0,+1] },
+  { flag:'🇭🇳', name:'Honduras',     vals:[+1,+1,+2,+1, 0, 0,+2, 0, 0,+2, 0,+1] },
+  { flag:'🇸🇻', name:'El Salvador',  vals:[+1,+2,+1,+1,+1, 0,+1, 0,+1,+3, 0,+1] },
+  { flag:'🇵🇦', name:'Panama',       vals:[+1, 0,+1, 0, 0, 0,+1,-1,+1,+1, 0, 0] },
+  { flag:'🇩🇴', name:'Dominican Rep.', vals:[+1,+1,+2,+1, 0, 0,+1, 0, 0,+1, 0,+1] },
+  { flag:'🇵🇾', name:'Paraguay',     vals:[+1,+1,+2,+1, 0, 0,+2, 0, 0,+1, 0,+1] },
+  { flag:'🇯🇲', name:'Jamaica',      vals:[ 0, 0,+1, 0, 0, 0,+1,-1, 0,+1,-1, 0] },
+  { flag:'🇭🇹', name:'Haiti',        vals:[ 0,+1,+1,+1, 0, 0,+1, 0,-1,+1, 0, 0] },
+  { flag:'🇹🇹', name:'Trinidad',     vals:[ 0, 0,+1, 0, 0, 0,+1,-1, 0,+1,-1, 0] },
+  // ── more Middle East ──
+  { flag:'🇴🇲', name:'Oman',         vals:[+1,+2,+3,+1,+2,+1,+2, 0,+1,+1,+2,+2] },
+  { flag:'🇧🇭', name:'Bahrain',      vals:[+2,+3,+2,+1,+3,+1,+2,+1,+2,+2,+2,+2] },
+  { flag:'🇵🇸', name:'Palestine',    vals:[-1,+2,+3,+3,+1, 0,+3,+2,-1,+2,+2,+3] },
+  // ── more Africa ──
+  { flag:'🇦🇴', name:'Angola',       vals:[-1,+2,+2,+1,+2,+1,+1, 0,-1,+2,+1,+1] },
+  { flag:'🇲🇿', name:'Mozambique',   vals:[-1,+1,+2,+1,+1, 0,+1, 0,-1,+1,+1,+1] },
+  { flag:'🇿🇲', name:'Zambia',       vals:[ 0,+1,+2,+1, 0, 0,+2,-1, 0,+1,+1,+1] },
+  { flag:'🇧🇼', name:'Botswana',     vals:[+1, 0,+1, 0, 0, 0,+1,-2, 0,+1, 0, 0] },
+  { flag:'🇳🇦', name:'Namibia',      vals:[-1, 0,+1, 0, 0, 0,+1,-1, 0,+1, 0, 0] },
+  { flag:'🇨🇲', name:'Cameroon',     vals:[ 0,+2,+2,+1,+2,+1,+1,+1,-1,+2,+1,+1] },
+  { flag:'🇨🇮', name:'Ivory Coast',  vals:[+1,+1,+2,+1,+1, 0,+1, 0, 0,+1,+1,+1] },
+  { flag:'🇲🇱', name:'Mali',         vals:[ 0,+2,+2,+2,+1,+1,+2,+2,-1,+2,+1,+2] },
+  { flag:'🇧🇫', name:'Burkina Faso', vals:[-1,+2,+2,+2,+1,+1,+2,+2,-1,+2,+1,+1] },
+  { flag:'🇳🇪', name:'Niger',        vals:[ 0,+2,+3,+2,+1,+1,+3,+1,-1,+2,+1,+2] },
+  { flag:'🇹🇩', name:'Chad',         vals:[ 0,+2,+2,+2,+1,+1,+2,+1,-2,+2,+1,+1] },
+  { flag:'🇸🇩', name:'Sudan',        vals:[ 0,+3,+3,+2,+1,+1,+3,+2,-2,+2,+2,+2] },
+  { flag:'🇸🇴', name:'Somalia',      vals:[ 0,+2,+3,+2,-1,+1,+3,+2,-2,+2,+2,+3] },
+  { flag:'🇲🇬', name:'Madagascar',   vals:[ 0,+1,+1,+1,+1, 0,+1,-1,-1,+1,+1,+1] },
+  { flag:'🇲🇺', name:'Mauritius',    vals:[+1,-1,+1, 0, 0,-1,+1,-2,+1, 0,-1, 0] },
+  { flag:'🇬🇦', name:'Gabon',        vals:[ 0,+2,+2,+1,+2,+1,+1, 0,-1,+1,+1,+1] },
+  // ── more Asia / Oceania ──
+  { flag:'🇰🇭', name:'Cambodia',     vals:[ 0,+3,+2,+2,+3, 0,+1, 0, 0,+2,+2,+1] },
+  { flag:'🇱🇦', name:'Laos',         vals:[-1,+3,+1,+2,+3, 0,-1, 0,-1,+2,+2, 0] },
+  { flag:'🇧🇳', name:'Brunei',       vals:[+2,+3,+3,+2,+3,+1,+3, 0,+1,+2,+2,+2] },
+  { flag:'🇧🇹', name:'Bhutan',       vals:[-1,+1,+2,+2,+1,-2,+2,-2,-1,+1,+2,+1] },
+  { flag:'🇵🇬', name:'Papua N.G.',   vals:[ 0, 0,+2,+1,-1, 0,+2,-1,-1,+1,+1,+1] },
+  { flag:'🇫🇯', name:'Fiji',         vals:[ 0,+1,+2,+1,+1, 0,+2,-1, 0,+1,+1,+1] },
 ];
 function nearestCountry() {
   let best = null, bestD = Infinity;
@@ -756,7 +936,7 @@ const els = [];   // { slider, lp, rp }
 let ftrTimer = null;
 
 // ── Canvas palette ──
-const C = { dim:'#2a2410', mid:'#4a3f1a', active:'#eab308', bright:'#fde68a', mind:'#5aabda', suggest:'#e0a72e', enforce:'#d45030' };
+const C = { dim:'#26262b', mid:'#3f3f46', active:'#eab308', bright:'#fde68a', mind:'#3b82f6', suggest:'#eab308', enforce:'#ef4444' };
 let dither = null;
 
 function mkDither(ctx) {
@@ -793,8 +973,6 @@ function draw(exportCv) {
   const r1  = W * 0.305;
   const rL  = W * 0.415;
 
-  if (!exportCv && !dither) dither = mkDither(ctx);
-  const pat = exportCv ? mkDither(ctx) : dither;
   ctx.clearRect(0, 0, W, W);
 
   // Guide rings
@@ -827,7 +1005,7 @@ function draw(exportCv) {
   ctx.beginPath();
   for (let i = 0; i < N; i++) { const [x,y] = pt(i,vals[i],cx,cy,r0,r1); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
   ctx.closePath();
-  ctx.globalAlpha = 0.62; ctx.fillStyle = pat; ctx.fill(); ctx.globalAlpha = 1;
+  ctx.fillStyle = 'rgba(234,179,8,0.16)'; ctx.fill();
 
   // Profile stroke
   ctx.beginPath();
@@ -845,7 +1023,7 @@ function draw(exportCv) {
   // Axis labels (icon by default, abbreviation on hover)
   axLabelPos.length = 0;
   const fs = Math.max(12, Math.round(W * 0.052));
-  ctx.font = `${fs}px VT323, monospace`;
+  ctx.font = `600 ${fs}px 'IBM Plex Sans', system-ui, sans-serif`;
   for (let i = 0; i < N; i++) {
     const a = (i/N)*2*Math.PI - Math.PI/2;
     const ca = Math.cos(a), sa = Math.sin(a);
@@ -889,7 +1067,7 @@ function closestProfiles() {
   for (const p of PROFILES) {
     let d = 0;
     for (let i = 0; i < N; i++) d += Math.abs((p.vals[i] ?? 0) - vals[i]);
-    if ((p.cat === 'hist' || p.cat === 'pres') && d < bestHistD) { bestHistD = d; bestHist = p; }
+    if ((p.cat === 'hist' || p.cat === 'pres' || p.cat === 'thinkers' || p.cat === 'tech') && d < bestHistD) { bestHistD = d; bestHist = p; }
     if (fictCats.has(p.cat)  && d < bestFictD) { bestFictD = d; bestFict = p; }
   }
   return { hist: bestHist, fict: bestFict };
@@ -985,7 +1163,7 @@ function buildSliders() {
 
 // ── Profiles panel ──
 function buildProfiles() {
-  const catMap = { pres:'grid-pres', hist:'grid-hist', anime:'grid-anime', games:'grid-games', film:'grid-film' };
+  const catMap = { pres:'grid-pres', hist:'grid-hist', thinkers:'grid-thinkers', tech:'grid-tech', anime:'grid-anime', games:'grid-games', film:'grid-film' };
   PROFILES.forEach(p => {
     const grid = document.getElementById(catMap[p.cat]);
     if (!grid) return;
